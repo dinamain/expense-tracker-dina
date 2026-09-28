@@ -28,7 +28,7 @@
         <span class="value" id="total-expense">₹0.00</span>
       </div>
     </section>
-    
+
         <div class="layout">
       <!-- Add / edit form -->
       <section class="panel" aria-labelledby="form-title">
@@ -76,11 +76,57 @@
         </form>
       </section>
 
-      <!-- Transaction list goes here in Step 3 -->
+           <!-- Transaction list -->
+      <section class="panel" aria-labelledby="list-title">
+        <h2 id="list-title">Transactions</h2>
+
+        <div class="filters">
+          <select id="filter-type" aria-label="Filter by type">
+            <option value="all">All types</option>
+            <option value="income">Income</option>
+            <option value="expense">Expense</option>
+          </select>
+          <select id="filter-category" aria-label="Filter by category"></select>
+          <select id="filter-month" aria-label="Filter by month"></select>
+          <button type="button" id="clear-filters" class="btn link">Clear</button>
+        </div>
+
+        <p class="filter-info" id="filter-info"></p>
+        <ul id="transaction-list" class="transaction-list"></ul>
+        <p id="empty-state" class="empty"></p>
+      </section>
+
+    </div>
+        <div class="layout">
+      <!-- Monthly summary (bonus) -->
+      <section class="panel" aria-labelledby="monthly-title">
+        <h2 id="monthly-title">Monthly Summary</h2>
+        <div class="table-wrap">
+          <table id="monthly-table">
+            <thead>
+              <tr>
+                <th>Month</th>
+                <th>Income</th>
+                <th>Expenses</th>
+                <th>Net</th>
+              </tr>
+            </thead>
+            <tbody id="monthly-summary-body"></tbody>
+          </table>
+        </div>
+        <p id="monthly-empty" class="empty">No data yet.</p>
+      </section>
+
+      <!-- Category chart (bonus) -->
+      <section class="panel" aria-labelledby="chart-title">
+        <h2 id="chart-title">Expenses by Category</h2>
+        <div id="category-chart" class="chart"></div>
+      </section>
     </div>
 
   </main>
-
+    <div id="toast" class="toast" role="status" aria-live="polite"></div>
+    
   <script src="script.js"></script>
 </body>
 </html>
