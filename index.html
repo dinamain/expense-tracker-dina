@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Expense Tracker</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <header class="app-header">
+    <h1>Expense Tracker</h1>
+    <p class="subtitle">Keep track of where your money goes</p>
+  </header>
+
+  <main class="container">
+    <!-- Summary cards -->
+    <section class="summary" aria-label="Account summary">
+      <div class="card balance">
+        <span class="label">Current Balance</span>
+        <span class="value" id="balance">₹0.00</span>
+      </div>
+      <div class="card income">
+        <span class="label">Total Income</span>
+        <span class="value" id="total-income">₹0.00</span>
+      </div>
+      <div class="card expense">
+        <span class="label">Total Expenses</span>
+        <span class="value" id="total-expense">₹0.00</span>
+      </div>
+    </section>
+  </main>
+
+  <script src="script.js"></script>
+</body>
+</html>
