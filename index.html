@@ -28,6 +28,57 @@
         <span class="value" id="total-expense">₹0.00</span>
       </div>
     </section>
+    
+        <div class="layout">
+      <!-- Add / edit form -->
+      <section class="panel" aria-labelledby="form-title">
+        <h2 id="form-title">Add Transaction</h2>
+
+        <form id="transaction-form" novalidate>
+          <fieldset class="field">
+            <legend>Type</legend>
+            <div class="toggle-group">
+              <input type="radio" name="type" id="type-expense" value="expense" checked />
+              <label for="type-expense">Expense</label>
+              <input type="radio" name="type" id="type-income" value="income" />
+              <label for="type-income">Income</label>
+            </div>
+          </fieldset>
+
+          <div class="field">
+            <label for="amount">Amount (₹)</label>
+            <input type="number" id="amount" step="0.01" min="0" inputmode="decimal" placeholder="0.00" />
+            <small class="error" id="amount-error"></small>
+          </div>
+
+          <div class="field">
+            <label for="category">Category</label>
+            <select id="category"></select>
+            <small class="error" id="category-error"></small>
+          </div>
+
+          <div class="field">
+            <label for="date">Date</label>
+            <input type="date" id="date" />
+            <small class="error" id="date-error"></small>
+          </div>
+
+          <div class="field">
+            <label for="description">Description</label>
+            <input type="text" id="description" maxlength="100" placeholder="e.g. Groceries" />
+            <small class="error" id="description-error"></small>
+          </div>
+
+          <div class="form-actions">
+            <button type="submit" id="submit-btn" class="btn primary">Add Transaction</button>
+            <button type="button" id="cancel-edit" class="btn secondary hidden">Cancel</button>
+          </div>
+        </form>
+      </section>
+
+      <!-- Transaction list goes here in Step 3 -->
+    </div>
+
   </main>
 
   <script src="script.js"></script>
