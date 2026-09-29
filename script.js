@@ -135,6 +135,8 @@ function showToast(message, kind = "success") {
   clearTimeout(toastTimer);
   toastTimer = setTimeout(() => toastEl.classList.remove("show"), 2500);
 }
+
+
 // ===================== Dropdowns =====================
 function updateFormCategories() {
   fillSelect(categorySelect, CATEGORIES[getSelectedType()], "Select a category");
@@ -329,11 +331,79 @@ function renderList() {
     ? `Showing ${list.length} of ${transactions.length} transactions`
     : "";
 }
+function renderMonthlySummary() {
+  const months = {};
+  transactions.forEach((t) => {
+    const key = t.date.slice(0, 7);
+    if (!months[key]) months[key] = { income: 0, expense: 0 };
+    months[key][t.type] += t.amount;
+  });
+
+  const keys = Object.keys(months).sort().reverse();
+
+  monthlyBody.innerHTML = keys
+    .map((key) => {
+      const { income, expense } = months[key];
+      const net = income - expense;
+      return `
+        <tr>
+          <td>${formatMonth(key)}</td>
+          <td class="pos">${formatMoney(income)}</td>
+          <td class="neg">${formatMoney(expense)}</td>
+          <td class="${net < 0 ? "neg" : "pos"}">${formatMoney(net)}</td>
+        </tr>`;
+    })
+    .join("");
+
+  monthlyTable.hidden = keys.length === 0;
+  monthlyEmpty.hidden = keys.length > 0;
+}
+
+function renderCategoryChart() {
+  const month = filterMonth.value;
+  chartTitle.textContent = month
+    ? `Expenses by Category - ${formatMonth(month)}`
+    : "Expenses by Category - All time";
+
+  const totals = {};
+  transactions
+    .filter((t) => t.type === "expense" && (!month || t.date.startsWith(month)))
+    .forEach((t) => {
+      totals[t.category] = (totals[t.category] || 0) + t.amount;
+    });
+
+  const entries = Object.entries(totals).sort((a, b) => b[1] - a[1]);
+
+  if (entries.length === 0) {
+    chartEl.innerHTML = `<p class="empty">No expenses to show${month ? " for this month" : ""}.</p>`;
+    return;
+  }
+
+  const grandTotal = entries.reduce((sum, [, amount]) => sum + amount, 0);
+  const max = entries[0][1];
+
+  chartEl.innerHTML = entries
+    .map(([category, amount]) => {
+      const percent = ((amount / grandTotal) * 100).toFixed(1);
+      const width = (amount / max) * 100;
+      return `
+        <div class="bar-row">
+          <div class="bar-label">
+            <span>${escapeHTML(category)}</span>
+            <span>${formatMoney(amount)} (${percent}%)</span>
+          </div>
+          <div class="bar-track"><div class="bar-fill" style="width: ${width}%"></div></div>
+        </div>`;
+    })
+    .join("");
+}
 
 function render() {
   renderSummary();
   updateMonthFilter();
   renderList();
+  renderMonthlySummary();
+  renderCategoryChart();
 }
 
 // ===================== Event listeners =====================
@@ -383,7 +453,10 @@ filterType.addEventListener("change", () => {
 
 filterCategory.addEventListener("change", renderList);
 
-filterMonth.addEventListener("change", renderList);
+filterMonth.addEventListener("change", () => {
+  renderList();
+  renderCategoryChart();
+});
 
 clearFiltersBtn.addEventListener("click", () => {
   filterType.value = "all";
@@ -391,6 +464,15 @@ clearFiltersBtn.addEventListener("click", () => {
   filterCategory.value = "";
   filterMonth.value = "";
   renderList();
+  renderCategoryChart();
+});
+
+// Keep multiple open tabs in sync
+window.addEventListener("storage", (e) => {
+  if (e.key === STORAGE_KEY) {
+    transactions = loadTransactions();
+    render();
+  }
 });
 
 // ===================== Init =====================
@@ -398,3 +480,4 @@ dateInput.max = todayISO();
 resetForm();
 updateFilterCategories();
 render();
+
