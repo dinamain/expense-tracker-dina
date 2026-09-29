@@ -135,3 +135,128 @@ function showToast(message, kind = "success") {
   clearTimeout(toastTimer);
   toastTimer = setTimeout(() => toastEl.classList.remove("show"), 2500);
 }
+// ===================== Dropdowns =====================
+function updateFormCategories() {
+  fillSelect(categorySelect, CATEGORIES[getSelectedType()], "Select a category");
+}
+
+// ===================== Validation =====================
+function clearErrors() {
+  form.querySelectorAll(".error").forEach((el) => (el.textContent = ""));
+  form.querySelectorAll(".invalid").forEach((el) => el.classList.remove("invalid"));
+}
+
+function setError(input, message) {
+  document.getElementById(`${input.id}-error`).textContent = message;
+  input.classList.add("invalid");
+}
+
+function validateForm() {
+  clearErrors();
+  let valid = true;
+
+  const type = getSelectedType();
+  const amountRaw = amountInput.value.trim();
+  const amount = Number(amountRaw);
+  const category = categorySelect.value;
+  const date = dateInput.value;
+  const description = descriptionInput.value.trim();
+
+  if (amountRaw === "") {
+    setError(amountInput, "Please enter a valid amount.");
+    valid = false;
+  } else if (!Number.isFinite(amount) || amount <= 0) {
+    setError(amountInput, "Amount must be greater than 0.");
+    valid = false;
+  } else if (!/^\d+(\.\d{1,2})?$/.test(amountRaw)) {
+    setError(amountInput, "Use numbers only, with at most 2 decimal places.");
+    valid = false;
+  } else if (amount > MAX_AMOUNT) {
+    setError(amountInput, `Amount can't be more than ${formatMoney(MAX_AMOUNT)}.`);
+    valid = false;
+  }
+
+  if (!category) {
+    setError(categorySelect, "Please select a category.");
+    valid = false;
+  }
+
+  if (!date) {
+    setError(dateInput, "Please pick a date.");
+    valid = false;
+  } else if (date > todayISO()) {
+    setError(dateInput, "Date can't be in the future.");
+    valid = false;
+  }
+
+  if (!description) {
+    setError(descriptionInput, "Please add a short description.");
+    valid = false;
+  } else if (description.length > 100) {
+    setError(descriptionInput, "Keep the description under 100 characters.");
+    valid = false;
+  }
+
+  if (!valid) {
+    form.querySelector(".invalid")?.focus();
+    return null;
+  }
+
+  return { type, amount: Math.round(amount * 100) / 100, category, date, description };
+}
+
+// ===================== Actions =====================
+function resetForm() {
+  form.reset();
+  editingId = null;
+  clearErrors();
+  updateFormCategories();
+  dateInput.value = todayISO();
+  submitBtn.textContent = "Add Transaction";
+  formTitle.textContent = "Add Transaction";
+  cancelEditBtn.classList.add("hidden");
+}
+
+// ===================== Rendering =====================
+// Temporary - replaced in Step 8
+function render() {
+  console.log("Transactions:", transactions);
+}
+
+// ===================== Event listeners =====================
+form.addEventListener("submit", (e) => {
+  e.preventDefault();
+  const data = validateForm();
+  if (!data) return;
+
+  if (editingId) {
+    transactions = transactions.map((t) => (t.id === editingId ? { ...t, ...data } : t));
+    showToast("Transaction updated.");
+  } else {
+    transactions.push({ id: generateId(), createdAt: Date.now(), ...data });
+    showToast("Transaction added.");
+  }
+
+  saveTransactions();
+  resetForm();
+  render();
+});
+
+form.querySelectorAll('input[name="type"]').forEach((radio) =>
+  radio.addEventListener("change", updateFormCategories)
+);
+
+// Clear a field's error as soon as the user fixes it
+[amountInput, categorySelect, dateInput, descriptionInput].forEach((input) =>
+  input.addEventListener("input", () => {
+    input.classList.remove("invalid");
+    document.getElementById(`${input.id}-error`).textContent = "";
+  })
+);
+
+cancelEditBtn.addEventListener("click", resetForm);
+
+// ===================== Init =====================
+dateInput.max = todayISO();
+resetForm();
+render();
