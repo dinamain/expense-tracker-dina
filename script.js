@@ -216,6 +216,38 @@ function resetForm() {
   formTitle.textContent = "Add Transaction";
   cancelEditBtn.classList.add("hidden");
 }
+function startEdit(id) {
+  const t = transactions.find((tx) => tx.id === id);
+  if (!t) return;
+
+  editingId = id;
+  clearErrors();
+  setSelectedType(t.type);
+  updateFormCategories();
+  amountInput.value = t.amount;
+  categorySelect.value = t.category;
+  dateInput.value = t.date;
+  descriptionInput.value = t.description;
+
+  submitBtn.textContent = "Save Changes";
+  formTitle.textContent = "Edit Transaction";
+  cancelEditBtn.classList.remove("hidden");
+
+  form.scrollIntoView({ behavior: "smooth", block: "start" });
+  amountInput.focus({ preventScroll: true });
+}
+
+function deleteTransaction(id) {
+  const t = transactions.find((tx) => tx.id === id);
+  if (!t) return;
+  if (!confirm(`Delete "${t.description}"? This can't be undone.`)) return;
+
+  transactions = transactions.filter((tx) => tx.id !== id);
+  if (editingId === id) resetForm();
+  saveTransactions();
+  render();
+  showToast("Transaction deleted.");
+}
 
 // ===================== Rendering =====================
 function sumByType(list, type) {
@@ -320,6 +352,14 @@ form.querySelectorAll('input[name="type"]').forEach((radio) =>
 );
 
 cancelEditBtn.addEventListener("click", resetForm);
+// Event delegation for edit/delete buttons
+listEl.addEventListener("click", (e) => {
+  const btn = e.target.closest("button[data-action]");
+  if (!btn) return;
+  const id = btn.closest("li").dataset.id;
+  if (btn.dataset.action === "edit") startEdit(id);
+  if (btn.dataset.action === "delete") deleteTransaction(id);
+});
 
 // ===================== Init =====================
 dateInput.max = todayISO();
