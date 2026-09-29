@@ -218,9 +218,74 @@ function resetForm() {
 }
 
 // ===================== Rendering =====================
-// Temporary - replaced in Step 8
+function sumByType(list, type) {
+  return list.filter((t) => t.type === type).reduce((sum, t) => sum + t.amount, 0);
+}
+
+function getFilteredTransactions() {
+  const type = filterType.value;
+  const category = filterCategory.value;
+  const month = filterMonth.value;
+
+  return transactions
+    .filter(
+      (t) =>
+        (type === "all" || t.type === type) &&
+        (!category || t.category === category) &&
+        (!month || t.date.startsWith(month))
+    )
+    .sort((a, b) => b.date.localeCompare(a.date) || b.createdAt - a.createdAt);
+}
+
+function renderSummary() {
+  const income = sumByType(transactions, "income");
+  const expense = sumByType(transactions, "expense");
+  const balance = income - expense;
+
+  incomeEl.textContent = formatMoney(income);
+  expenseEl.textContent = formatMoney(expense);
+  balanceEl.textContent = formatMoney(balance);
+  balanceEl.classList.toggle("negative", balance < 0);
+}
+
+function renderList() {
+  const list = getFilteredTransactions();
+
+  listEl.innerHTML = list
+    .map(
+      (t) => `
+      <li class="transaction ${t.type}" data-id="${t.id}">
+        <div class="tx-main">
+          <span class="tx-desc">${escapeHTML(t.description)}</span>
+          <span class="tx-meta">${escapeHTML(t.category)} &middot; ${formatDate(t.date)}</span>
+        </div>
+        <span class="tx-amount">${t.type === "income" ? "+" : "-"}${formatMoney(t.amount)}</span>
+        <div class="tx-actions">
+          <button type="button" class="icon-btn" data-action="edit"
+            aria-label="Edit ${escapeHTML(t.description)}">Edit</button>
+          <button type="button" class="icon-btn danger" data-action="delete"
+            aria-label="Delete ${escapeHTML(t.description)}">Delete</button>
+        </div>
+      </li>`
+    )
+    .join("");
+
+  const isFiltered = filterType.value !== "all" || filterCategory.value || filterMonth.value;
+
+  emptyState.hidden = list.length > 0;
+  emptyState.textContent =
+    transactions.length === 0
+      ? "No transactions yet. Add your first one!"
+      : "No transactions match these filters.";
+
+  filterInfo.textContent = isFiltered
+    ? `Showing ${list.length} of ${transactions.length} transactions`
+    : "";
+}
+
 function render() {
-  console.log("Transactions:", transactions);
+  renderSummary();
+  renderList();
 }
 
 // ===================== Event listeners =====================
