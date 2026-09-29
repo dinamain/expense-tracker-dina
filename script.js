@@ -139,6 +139,21 @@ function showToast(message, kind = "success") {
 function updateFormCategories() {
   fillSelect(categorySelect, CATEGORIES[getSelectedType()], "Select a category");
 }
+function updateFilterCategories() {
+  const current = filterCategory.value;
+  const type = filterType.value;
+  const options = type === "all" ? [...CATEGORIES.income, ...CATEGORIES.expense] : CATEGORIES[type];
+  fillSelect(filterCategory, options, "All categories");
+  if (options.includes(current)) filterCategory.value = current;
+}
+
+// Only months that actually have transactions
+function updateMonthFilter() {
+  const current = filterMonth.value;
+  const months = [...new Set(transactions.map((t) => t.date.slice(0, 7)))].sort().reverse();
+  fillSelect(filterMonth, months.map((m) => [m, formatMonth(m)]), "All months");
+  if (months.includes(current)) filterMonth.value = current;
+}
 
 // ===================== Validation =====================
 function clearErrors() {
@@ -317,6 +332,7 @@ function renderList() {
 
 function render() {
   renderSummary();
+  updateMonthFilter();
   renderList();
 }
 
@@ -360,8 +376,25 @@ listEl.addEventListener("click", (e) => {
   if (btn.dataset.action === "edit") startEdit(id);
   if (btn.dataset.action === "delete") deleteTransaction(id);
 });
+filterType.addEventListener("change", () => {
+  updateFilterCategories();
+  renderList();
+});
+
+filterCategory.addEventListener("change", renderList);
+
+filterMonth.addEventListener("change", renderList);
+
+clearFiltersBtn.addEventListener("click", () => {
+  filterType.value = "all";
+  updateFilterCategories();
+  filterCategory.value = "";
+  filterMonth.value = "";
+  renderList();
+});
 
 // ===================== Init =====================
 dateInput.max = todayISO();
 resetForm();
+updateFilterCategories();
 render();
